@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>National Transport — Lead Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE6D6;
+    --paper-dark:#E2D9C4;
+    --card:#F7F2E7;
+    --ink:#1F2E3D;
+    --ink-soft:#4A5D6B;
+    --line:#C9BC9E;
+    --amber:#D68A2C;
+    --amber-deep:#B8721E;
+    --green:#3F7A52;
+    --red:#B23A2E;
+    --shadow: 0 1px 0 rgba(31,46,61,0.06), 0 2px 8px rgba(31,46,61,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(31,46,61,0.025) 0px, rgba(31,46,61,0.025) 1px, transparent 1px, transparent 26px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  /* HEADER */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-mark{
+    width:46px;height:46px;border:2.5px solid var(--ink);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;background:var(--ink);
+    flex-shrink:0;
+  }
+  .brand-mark svg{width:26px;height:26px;}
+  .brand h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:28px;
+    letter-spacing:0.5px;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .brand p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.5px;
+  }
+  .board{display:flex;gap:10px;flex-wrap:wrap;}
+  .flap{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:4px;
+    padding:8px 14px;
+    min-width:84px;
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .flap .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:22px;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:1px;
+  }
+  .flap .num.pos{color:#8FD9A8;}
+  .flap .num.neg{color:#F0A398;}
+  .flap .lbl{
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    color:var(--amber);
+    margin-top:3px;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* TOOLBAR */
+  .toolbar{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .search-box{
+    position:relative;flex:1;min-width:220px;
+  }
+  .search-box input{
+    width:100%;
+    padding:10px 14px 10px 34px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    background:var(--card);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search-box input:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber);}
+  .search-box::before{
+    content:"⌕";
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    color:var(--ink-soft);font-size:16px;font-weight:700;
+  }
+  select#sortSelect{
+    padding:10px 12px;border:1.5px solid var(--line);border-radius:6px;
+    background:var(--card);font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);
+  }
+  button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
+    border-radius:6px;border:none;cursor:pointer;padding:10px 18px;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-primary{background:var(--amber);color:#fff;box-shadow:var(--shadow);}
+  .btn-primary:hover{background:var(--amber-deep);}
+  .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);}
+  .btn-ghost:hover{background:var(--ink);color:var(--paper);}
+
+  /* TABLE */
+  .ledger{
+    background:var(--card);
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .table-scroll{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;min-width:1400px;}
+  thead th{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    padding:12px 10px;
+    text-align:left;
+    white-space:nowrap;
+    position:sticky;top:0;
+  }
+  tbody td{
+    padding:11px 10px;
+    font-size:13px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+    font-family:'Inter',sans-serif;
+  }
+  tbody tr:hover{background:var(--paper-dark);}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .sr{color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-weight:700;}
+  .route{
+    display:flex;align-items:center;gap:6px;font-weight:600;
+  }
+  .route .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+  .route .line{width:18px;height:1.5px;background:var(--line);flex-shrink:0;}
+  .dims{font-family:'JetBrains Mono',monospace;color:var(--ink-soft);font-size:12px;}
+  .margin-pos{color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .margin-neg{color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .remarks-cell{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{
+    background:transparent;border:1px solid var(--line);border-radius:5px;
+    padding:5px 9px;font-size:12px;color:var(--ink-soft);
+  }
+  .icon-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .icon-btn.danger:hover{border-color:var(--red);color:var(--red);}
+  .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
+  .empty-state .big{font-family:'Oswald',sans-serif;font-size:20px;color:var(--ink);text-transform:uppercase;letter-spacing:0.5px;}
+
+  /* MODAL */
+  .overlay{
+    position:fixed;inset:0;background:rgba(31,46,61,0.55);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;z-index:50;overflow-y:auto;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--paper);border-radius:10px;width:100%;max-width:760px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);border:1.5px solid var(--ink);
+    animation:pop .18s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;border-bottom:2px solid var(--ink);
+  }
+  .modal-head h2{
+    font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;margin:0;
+  }
+  .modal-head button{background:none;border:none;font-size:20px;color:var(--ink-soft);cursor:pointer;padding:2px 6px;}
+  .modal-body{padding:20px 22px;}
+  .form-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  }
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.span2{grid-column:span 2;}
+  .field.span3{grid-column:span 3;}
+  .field label{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.7px;color:var(--ink-soft);font-weight:600;
+  }
+  .field input, .field textarea{
+    padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;
+    font-family:'Inter',sans-serif;font-size:13.5px;background:var(--card);color:var(--ink);
+  }
+  .field input:focus, .field textarea:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 2px rgba(214,138,44,0.25);}
+  .field textarea{resize:vertical;min-height:56px;font-family:'Inter',sans-serif;}
+  .dims-row{grid-column:span 3;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .modal-foot{
+    padding:16px 22px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line);
+  }
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:6px;
+    font-size:13px;font-family:'Inter',sans-serif;box-shadow:var(--shadow);
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;
+    z-index:100;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+  .shared-note{
+    font-size:11.5px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;
+    margin-top:10px;text-align:center;
+  }
+  @media (max-width:720px){
+    .form-grid{grid-template-columns:1fr 1fr;}
+    .field.span3, .dims-row{grid-column:span 2;}
+    table{min-width:1100px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 17V7a1 1 0 011-1h10a1 1 0 011 1v10M2 17h12M2 17H1M14 10h5.5l3.5 4v3h-2M14 17h6" stroke="#D68A2C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="6" cy="18.5" r="1.6" fill="#EDE6D6"/>
+          <circle cx="17" cy="18.5" r="1.6" fill="#EDE6D6"/>
+        </svg>
+      </div>
+      <div>
+        <h1>National Transport</h1>
+        <p>LEAD TRACKER</p>
+      </div>
+    </div>
+    <div class="board" id="statsBoard">
+      <div class="flap"><div class="num" id="statTotal">000</div><div class="lbl">Total Leads</div></div>
+      <div class="flap"><div class="num" id="statOpen">000</div><div class="lbl">Open Reqs</div></div>
+      <div class="flap"><div class="num mono" id="statMargin">₹0</div><div class="lbl">Avg Margin</div></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search name, mobile, route, incharge…">
+    </div>
+    <select id="sortSelect">
+      <option value="reqDateAsc">Requirement date ↑</option>
+      <option value="reqDateDesc">Requirement date ↓</option>
+      <option value="entryDesc">Newest entered</option>
+      <option value="marginDesc">Margin: high → low</option>
+    </select>
+    <button class="btn-ghost" id="exportBtn">Export CSV</button>
+    <button class="btn-primary" id="addBtn">+ Add Consignment</button>
+  </div>
+
+  <div class="ledger">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Sr.</th><th>Date</th><th>Incharge</th><th>Mobile</th><th>Name</th>
+            <th>Route</th><th>Weight</th><th>Dimensions (L×W×H)</th><th>Req. Date</th>
+            <th>Truck Type</th><th>Broker Rate</th><th>Customer Rate</th><th>Margin</th>
+            <th>Remarks</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="big">Ledger is empty</div>
+      <p>Add your first consignment to start tracking leads.</p>
+    </div>
+  </div>
+
+  <p class="shared-note">Shared ledger — visible to everyone using this Freight Desk board.</p>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Add Consignment</h2>
+      <button id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Date</label><input type="date" id="f_date"></div>
+        <div class="field"><label>Incharge</label><input type="text" id="f_incharge" placeholder="e.g. Rakesh"></div>
+        <div class="field"><label>Mobile</label><input type="tel" id="f_mobile" placeholder="10-digit number"></div>
+
+        <div class="field"><label>Customer Name</label><input type="text" id="f_name" placeholder="Consignor / party name"></div>
+        <div class="field"><label>From</label><input type="text" id="f_from" placeholder="Origin city"></div>
+        <div class="field"><label>To</label><input type="text" id="f_to" placeholder="Destination city"></div>
+
+        <div class="dims-row">
+          <div class="field"><label>Weight (kg)</label><input type="number" id="f_weight" placeholder="0"></div>
+          <div class="field"><label>Length (ft)</label><input type="number" id="f_length" placeholder="0"></div>
+          <div class="field"><label>Width (ft)</label><input type="number" id="f_width" placeholder="0"></div>
+        </div>
+        <div class="field"><label>Height (ft)</label><input type="number" id="f_height" placeholder="0"></div>
+        <div class="field"><label>Date of Requirement</label><input type="date" id="f_reqdate"></div>
+        <div class="field"><label>Truck Type</label><input type="text" id="f_truck" list="truckTypes" placeholder="e.g. Open Body 22ft"></div>
+        <datalist id="truckTypes">
+          <option value="Open Body 14ft"><option value="Open Body 17ft"><option value="Open Body 22ft">
+          <option value="Container 20ft"><option value="Container 32ft SXL"><option value="Container 32ft MXL">
+          <option value="Trailer 40ft"><option value="Tempo / LCV"><option value="Tanker">
+        </datalist>
+
+        <div class="field"><label>Broker Rate (₹)</label><input type="number" id="f_brokerrate" placeholder="0"></div>
+        <div class="field"><label>Customer Rate (₹)</label><input type="number" id="f_customerrate" placeholder="0"></div>
+        <div class="field"></div>
+
+        <div class="field span3"><label>Remarks</label><textarea id="f_remarks" placeholder="Notes, follow-up, negotiation status…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn-primary" id="saveBtn">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = 'freight-leads-v1';
+let leads = [];
+let editingId = null;
+
+const $ = (id) => document.getElementById(id);
+const tableBody = $('tableBody');
+const overlay = $('overlay');
+const emptyState = $('emptyState');
+
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function fmtMoney(n){
+  n = Number(n)||0;
+  return '₹' + n.toLocaleString('en-IN');
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const parts = d.split('-');
+  if(parts.length!==3) return d;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+async function loadLeads(){
+  try{
+    const res = await window.storage.get(STORE_KEY, true);
+    leads = res ? JSON.parse(res.value) : [];
+  }catch(e){
+    leads = [];
+  }
+  render();
+}
+
+async function saveLeads(){
+  try{
+    await window.storage.set(STORE_KEY, JSON.stringify(leads), true);
+  }catch(e){
+    toast('Save failed — check connection');
+  }
+}
+
+function openModal(id=null){
+  editingId = id;
+  if(id){
+    const l = leads.find(x=>x.id===id);
+    $('modalTitle').textContent = 'Edit Consignment';
+    $('f_date').value = l.date||'';
+    $('f_incharge').value = l.incharge||'';
+    $('f_mobile').value = l.mobile||'';
+    $('f_name').value = l.name||'';
+    $('f_from').value = l.from||'';
+    $('f_to').value = l.to||'';
+    $('f_weight').value = l.weight||'';
+    $('f_length').value = l.length||'';
+    $('f_width').value = l.width||'';
+    $('f_height').value = l.height||'';
+    $('f_reqdate').value = l.reqDate||'';
+    $('f_truck').value = l.truckType||'';
+    $('f_brokerrate').value = l.brokerRate||'';
+    $('f_customerrate').value = l.customerRate||'';
+    $('f_remarks').value = l.remarks||'';
+  }else{
+    $('modalTitle').textContent = 'Add Consignment';
+    ['f_date','f_incharge','f_mobile','f_name','f_from','f_to','f_weight','f_length','f_width','f_height','f_reqdate','f_truck','f_brokerrate','f_customerrate','f_remarks'].forEach(id=>$(id).value='');
+    $('f_date').value = new Date().toISOString().slice(0,10);
+  }
+  overlay.classList.add('open');
+}
+function closeModalFn(){
+  overlay.classList.remove('open');
+  editingId = null;
+}
+
+async function saveEntry(){
+  const entry = {
+    date: $('f_date').value,
+    incharge: $('f_incharge').value.trim(),
+    mobile: $('f_mobile').value.trim(),
+    name: $('f_name').value.trim(),
+    from: $('f_from').value.trim(),
+    to: $('f_to').value.trim(),
+    weight: $('f_weight').value,
+    length: $('f_length').value,
+    width: $('f_width').value,
+    height: $('f_height').value,
+    reqDate: $('f_reqdate').value,
+    truckType: $('f_truck').value.trim(),
+    brokerRate: $('f_customerrate') ? $('f_brokerrate').value : '',
+    customerRate: $('f_customerrate').value,
+    remarks: $('f_remarks').value.trim(),
+  };
+  if(!entry.name && !entry.mobile){
+    toast('Add at least a name or mobile number');
+    return;
+  }
+  if(editingId){
+    const idx = leads.findIndex(x=>x.id===editingId);
+    leads[idx] = {...leads[idx], ...entry};
+    toast('Entry updated');
+  }else{
+    entry.id = 'lead_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    entry.createdAt = Date.now();
+    leads.push(entry);
+    toast('Entry added');
+  }
+  await saveLeads();
+  closeModalFn();
+  render();
+}
+
+async function deleteEntry(id){
+  if(!confirm('Delete this consignment entry?')) return;
+  leads = leads.filter(x=>x.id!==id);
+  await saveLeads();
+  render();
+  toast('Entry deleted');
+}
+
+function getFiltered(){
+  const q = $('searchInput').value.trim().toLowerCase();
+  let list = [...leads];
+  if(q){
+    list = list.filter(l =>
+      (l.name||'').toLowerCase().includes(q) ||
+      (l.mobile||'').toLowerCase().includes(q) ||
+      (l.incharge||'').toLowerCase().includes(q) ||
+      (l.from||'').toLowerCase().includes(q) ||
+      (l.to||'').toLowerCase().includes(q) ||
+      (l.truckType||'').toLowerCase().includes(q) ||
+      (l.remarks||'').toLowerCase().includes(q)
+    );
+  }
+  const sortVal = $('sortSelect').value;
+  list.sort((a,b)=>{
+    if(sortVal==='reqDateAsc') return (a.reqDate||'9999').localeCompare(b.reqDate||'9999');
+    if(sortVal==='reqDateDesc') return (b.reqDate||'0000').localeCompare(a.reqDate||'0000');
+    if(sortVal==='entryDesc') return (b.createdAt||0)-(a.createdAt||0);
+    if(sortVal==='marginDesc') return ((b.customerRate||0)-(b.brokerRate||0)) - ((a.customerRate||0)-(a.brokerRate||0));
+    return 0;
+  });
+  return list;
+}
+
+function render(){
+  const list = getFiltered();
+  tableBody.innerHTML = '';
+  emptyState.style.display = list.length ? 'none' : 'block';
+
+  list.forEach((l, i)=>{
+    const margin = (Number(l.customerRate)||0) - (Number(l.brokerRate)||0);
+    const marginClass = margin >= 0 ? 'margin-pos' : 'margin-neg';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="sr">${String(i+1).padStart(3,'0')}</td>
+      <td class="mono">${fmtDate(l.date)}</td>
+      <td>${l.incharge||'—'}</td>
+      <td class="mono">${l.mobile||'—'}</td>
+      <td>${l.name||'—'}</td>
+      <td><span class="route">${l.from||'—'}<span class="line"></span><span class="dot"></span><span class="line"></span>${l.to||'—'}</span></td>
+      <td class="mono">${l.weight?l.weight+' kg':'—'}</td>
+      <td class="dims">${l.length||'—'}×${l.width||'—'}×${l.height||'—'} ft</td>
+      <td class="mono">${fmtDate(l.reqDate)}</td>
+      <td>${l.truckType||'—'}</td>
+      <td class="mono">${fmtMoney(l.brokerRate)}</td>
+      <td class="mono">${fmtMoney(l.customerRate)}</td>
+      <td class="${marginClass}">${margin>=0?'+':''}${fmtMoney(margin)}</td>
+      <td class="remarks-cell" title="${(l.remarks||'').replace(/"/g,'&quot;')}">${l.remarks||'—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit="${l.id}">Edit</button>
+          <button class="icon-btn danger" data-del="${l.id}">Del</button>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  tableBody.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click', ()=>openModal(b.dataset.edit)));
+  tableBody.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', ()=>deleteEntry(b.dataset.del)));
+
+  // stats
+  $('statTotal').textContent = String(leads.length).padStart(3,'0');
+  const today = new Date().toISOString().slice(0,10);
+  const openReqs = leads.filter(l => l.reqDate && l.reqDate >= today).length;
+  $('statOpen').textContent = String(openReqs).padStart(3,'0');
+  const margins = leads.map(l => (Number(l.customerRate)||0)-(Number(l.brokerRate)||0));
+  const avgMargin = margins.length ? Math.round(margins.reduce((a,b)=>a+b,0)/margins.length) : 0;
+  const statMarginEl = $('statMargin');
+  statMarginEl.textContent = fmtMoney(avgMargin);
+  statMarginEl.className = 'num mono ' + (avgMargin>=0?'pos':'neg');
+}
+
+function exportCSV(){
+  const headers = ['Sr. no.','Date','Incharge','Mobile','Name','From','To','Weight','Length','Width','Height','Date of Requirement','Truck Type','Broker Rate','Customer Rate','Remarks'];
+  const rows = getFiltered().map((l,i)=>[
+    i+1, l.date, l.incharge, l.mobile, l.name, l.from, l.to, l.weight, l.length, l.width, l.height, l.reqDate, l.truckType, l.brokerRate, l.customerRate, (l.remarks||'').replace(/\n/g,' ')
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'freight_ledger.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+$('addBtn').addEventListener('click', ()=>openModal());
+$('closeModal').addEventListener('click', closeModalFn);
+$('cancelBtn').addEventListener('click', closeModalFn);
+$('saveBtn').addEventListener('click', saveEntry);
+$('searchInput').addEventListener('input', render);
+$('sortSelect').addEventListener('change', render);
+$('exportBtn').addEventListener('click', exportCSV);
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModalFn(); });
+
+loadLeads();
+</script>
+</body>
+</html>
