@@ -355,7 +355,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const STORE_KEY = 'freight-leads-v1';
 let leads = [];
 let editingId = null;
 
@@ -416,13 +415,6 @@ async function loadLeads() {
   render();
 }
 
-async function saveLeads(){
-  try{
-    await window.storage.set(STORE_KEY, JSON.stringify(leads), true);
-  }catch(e){
-    toast('Save failed — check connection');
-  }
-}
 
 function openModal(id=null){
   editingId = id;
@@ -456,38 +448,58 @@ function closeModalFn(){
   editingId = null;
 }
 
-async function saveEntry(){
+async function saveEntry() {
+
+  const entry = {
+    date: $('f_date').value,
+    incharge: $('f_incharge').value.trim(),
+    mobile: $('f_mobile').value.trim(),
+    name: $('f_name').value.trim(),
+    from: $('f_from').value.trim(),
+    to: $('f_to').value.trim(),
+    weight: $('f_weight').value,
+    length: $('f_length').value,
+    width: $('f_width').value,
+    height: $('f_height').value,
+    reqDate: $('f_reqdate').value,
+    truckType: $('f_truck').value.trim(),
+    brokerRate: $('f_brokerrate').value,
+    customerRate: $('f_customerrate').value,
+    remarks: $('f_remarks').value.trim()
+  };
+
   const row = {
-  id: editingId || crypto.randomUUID(),
-  date: entry.date,
-  incharge: entry.incharge,
-  mobile: entry.mobile,
-  name: entry.name,
-  from_city: entry.from,
-  to_city: entry.to,
-  weight: entry.weight,
-  length: entry.length,
-  width: entry.width,
-  height: entry.height,
-  req_date: entry.reqDate,
-  truck_type: entry.truckType,
-  broker_rate: entry.brokerRate,
-  customer_rate: entry.customerRate,
-  remarks: entry.remarks
-};
+    id: editingId || crypto.randomUUID(),
+    date: entry.date,
+    incharge: entry.incharge,
+    mobile: entry.mobile,
+    name: entry.name,
+    from_city: entry.from,
+    to_city: entry.to,
+    weight: entry.weight,
+    length: entry.length,
+    width: entry.width,
+    height: entry.height,
+    req_date: entry.reqDate,
+    truck_type: entry.truckType,
+    broker_rate: entry.brokerRate,
+    customer_rate: entry.customerRate,
+    remarks: entry.remarks
+  };
 
-const { error } = await supabase
-  .from("transport_leads")
-  .upsert(row);
+  const { error } = await supabase
+    .from("transport_leads")
+    .upsert(row);
 
-if (error) {
-  console.error(error);
-  alert(error.message);
-  return;
+  if (error) {
+    console.error(error);
+    alert(error.message);
+    return;
+  }
+
+  await loadLeads();
+  closeModalFn();
 }
-
-await loadLeads();
-closeModalFn();
 
 async function deleteEntry(id) {
   if (!confirm("Delete this entry?")) return;
