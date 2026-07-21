@@ -382,13 +382,37 @@ function fmtDate(d){
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-async function loadLeads(){
-  try{
-    const res = await window.storage.get(STORE_KEY, true);
-    leads = res ? JSON.parse(res.value) : [];
-  }catch(e){
-    leads = [];
+async function loadLeads() {
+  const { data, error } = await supabase
+    .from("transport_leads")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
   }
+
+  leads = data.map(row => ({
+    id: row.id,
+    date: row.date,
+    incharge: row.incharge,
+    mobile: row.mobile,
+    name: row.name,
+    from: row.from_city,
+    to: row.to_city,
+    weight: row.weight,
+    length: row.length,
+    width: row.width,
+    height: row.height,
+    reqDate: row.req_date,
+    truckType: row.truck_type,
+    brokerRate: row.broker_rate,
+    customerRate: row.customer_rate,
+    remarks: row.remarks,
+    createdAt: new Date(row.created_at).getTime()
+  }));
+
   render();
 }
 
@@ -433,48 +457,52 @@ function closeModalFn(){
 }
 
 async function saveEntry(){
-  const entry = {
-    date: $('f_date').value,
-    incharge: $('f_incharge').value.trim(),
-    mobile: $('f_mobile').value.trim(),
-    name: $('f_name').value.trim(),
-    from: $('f_from').value.trim(),
-    to: $('f_to').value.trim(),
-    weight: $('f_weight').value,
-    length: $('f_length').value,
-    width: $('f_width').value,
-    height: $('f_height').value,
-    reqDate: $('f_reqdate').value,
-    truckType: $('f_truck').value.trim(),
-    brokerRate: $('f_customerrate') ? $('f_brokerrate').value : '',
-    customerRate: $('f_customerrate').value,
-    remarks: $('f_remarks').value.trim(),
-  };
-  if(!entry.name && !entry.mobile){
-    toast('Add at least a name or mobile number');
-    return;
-  }
-  if(editingId){
-    const idx = leads.findIndex(x=>x.id===editingId);
-    leads[idx] = {...leads[idx], ...entry};
-    toast('Entry updated');
-  }else{
-    entry.id = 'lead_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-    entry.createdAt = Date.now();
-    leads.push(entry);
-    toast('Entry added');
-  }
-  await saveLeads();
-  closeModalFn();
-  render();
+  const row = {
+  id: editingId || crypto.randomUUID(),
+  date: entry.date,
+  incharge: entry.incharge,
+  mobile: entry.mobile,
+  name: entry.name,
+  from_city: entry.from,
+  to_city: entry.to,
+  weight: entry.weight,
+  length: entry.length,
+  width: entry.width,
+  height: entry.height,
+  req_date: entry.reqDate,
+  truck_type: entry.truckType,
+  broker_rate: entry.brokerRate,
+  customer_rate: entry.customerRate,
+  remarks: entry.remarks
+};
+
+const { error } = await supabase
+  .from("transport_leads")
+  .upsert(row);
+
+if (error) {
+  console.error(error);
+  alert(error.message);
+  return;
 }
 
-async function deleteEntry(id){
-  if(!confirm('Delete this consignment entry?')) return;
-  leads = leads.filter(x=>x.id!==id);
-  await saveLeads();
-  render();
-  toast('Entry deleted');
+await loadLeads();
+closeModalFn();
+
+async function deleteEntry(id) {
+  if (!confirm("Delete this entry?")) return;
+
+  const { error } = await supabase
+    .from("transport_leads")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  await loadLeads();
 }
 
 function getFiltered(){
